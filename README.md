@@ -3,8 +3,8 @@
 Because the author delayed to merge my request, so decided to reopen a repository themselves  
 Source file: https://github.com/v1pix/lua-scripts  
   
-This version, compared to the original, fixes the bug that repeated rendering does not disappear and the bug that the English client renders a square
-Theoretically all cheats can be used by changing the API related functions  
+This version fixes the bug that repeated rendering does not disappear compared to the original version
+Theoretically all cheats can be used by changing API related functions  
 This lua uses neverlose as an example
 
 # Font argument types
