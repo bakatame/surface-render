@@ -2,10 +2,12 @@
   
 Because the author delayed to merge my request, so decided to reopen a repository themselves  
 Source file: https://github.com/v1pix/lua-scripts  
-  
+
 This version fixes the bug that repeated rendering does not disappear compared to the original version
 Theoretically all cheats can be used by changing API related functions  
 This lua uses neverlose as an example
+
+**Suitable for Neverlose 3.0**
 
 # Font argument types
     
