@@ -1,4 +1,9 @@
 ffi.cdef[[
+
+    int VirtualProtect(void* lpAddress, unsigned long dwSize, unsigned long flNewProtect, unsigned long* lpflOldProtect);
+    void* VirtualAlloc(void* lpAddress, unsigned long dwSize, unsigned long  flAllocationType, unsigned long flProtect);
+    int VirtualFree(void* lpAddress, unsigned long dwSize, unsigned long dwFreeType);
+
     typedef unsigned char wchar_t;
     typedef unsigned int(__thiscall* create_font_t)(void*);
     typedef unsigned int(__thiscall* lock_cursor_t)(void*);
@@ -26,29 +31,12 @@ local renderer = {
     funcs = {}
 }
 
--- (机翻）@这样就可以在欺骗回调中调用surfer了
--- 但其实感觉没太大用处，在原版回调中也是差不多的情况
--- 有待考察
-local callbacks, register_callback = {}, Cheat.RegisterCallback
-Cheat.RegisterCallback = function (name, func)
-    if callbacks[name] == nil then callbacks[name] = {} end
-    table.insert(callbacks[name], func)
-
-    for callback, funcs in pairs(callbacks) do
-        local run_funcs = function (...)
-            if callback == "draw" then renderer.funcs = {} end
-            for _, func in pairs(funcs) do
-                func(...)
-            end
-        end
-        register_callback(callback, run_funcs)
-    end
-end
+renderer.__index = renderer
 
 local function uuid(len)
     local res, len = "", len or 32
     for i=1, len do
-        res = res .. string.char(Utils.RandomInt(97, 122))
+        res = res .. string.char(utils.random_int(97, 122))
     end
     return res
 end
@@ -89,7 +77,7 @@ function interface_mt.get_function(self, index, ret, args)
 end
 
 local function create_interface(dll, interface_name)
-    local interface = (type(dll) == "string" and type(interface_name) == "string") and Utils.CreateInterface(dll, interface_name) or dll
+    local interface = (type(dll) == "string" and type(interface_name) == "string") and utils.create_interface(dll, interface_name) or dll
     return setmetatable({ffi.cast(ffi.typeof("void***"), interface)}, {__index = interface_mt})
 end
 
@@ -430,11 +418,6 @@ end
 
 local buff = {free = {}}
 local vmt_hook = {hooks = {}}
-ffi.cdef[[
-    int VirtualProtect(void* lpAddress, unsigned long dwSize, unsigned long flNewProtect, unsigned long* lpflOldProtect);
-    void* VirtualAlloc(void* lpAddress, unsigned long dwSize, unsigned long  flAllocationType, unsigned long flProtect);
-    int VirtualFree(void* lpAddress, unsigned long dwSize, unsigned long dwFreeType);
-]]
 
 local vmt_helpers = {
     copy = function (dst, src, len)
@@ -498,7 +481,7 @@ vmt_hook.new = function (vt)
     return new_hook
 end
 
-local vgui2 = Utils.CreateInterface("vgui2.dll", "VGUI_Panel009")
+local vgui2 = utils.create_interface("vgui2.dll", "VGUI_Panel009")
 local VGUI_Panel009 = vmt_hook.new(vgui2)
 local panel_interface = ffi.cast(ffi.typeof("void***"), vgui2)
 local get_panel_name = ffi.cast(ffi.typeof("const char*(__thiscall*)(void*, uint32_t)"), panel_interface[0][36])
@@ -515,21 +498,23 @@ local painttraverse = function (void, int, bool, bool2)
 end
 VGUI_Panel = VGUI_Panel009.hookMethod("void(__thiscall*)(void*, unsigned int, bool, bool)", painttraverse, 41)
 
-Cheat.RegisterCallback("destroy", function()
+events.shutdown:set(function()
     for _, un_hook in ipairs(vmt_hook.hooks) do
         un_hook()
     end
 end)
 
---[[
 --  < example >
     
-local font = renderer.create_font("Verdana", 13, 300, 0x080)
-Cheat.RegisterCallback("draw", function()
-    local text = "Surface render"
-    local textsize_x, textsize_y = renderer.get_text_size(font, text)
+--[[ local font = renderer.create_font("Verdana", 13, 300, 0x080)
+
+events.render:set(function(ctx)
+    local en_text = "Suface_Render"
+    local cn_text = "中文渲染测试"
+    local textsize_x, textsize_y = renderer.get_text_size(font, cn_text)
     renderer.outlined_rect(297, 158, textsize_x + 7, textsize_y + 4, 255, 0, 0, 255)
     renderer.filled_rect(298, 159, textsize_x + 5, textsize_y + 2, 16, 16, 16, 255)
-    renderer.text(300, 160, 255, 0, 0, 255, font, text)
-end)
-]]
+    renderer.text(300, 160, 255, 0, 0, 255, font, cn_text)
+end) ]]
+
+return renderer
