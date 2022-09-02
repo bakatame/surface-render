@@ -6,6 +6,7 @@
 这个版本与原版相比，修正了重复渲染不会消失的bug
 理论上所有作弊都可以通过改变API相关函数来使用  
 此lua以neverlose作为例子
+适用于Neverlose 3.0版本，并准备上传
 
 # Font argument types
     
